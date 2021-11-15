@@ -132,6 +132,13 @@ func fillPluginsPaths(ifaces map[string]*iface) error {
 	return nil
 }
 
+func dnsIsEmpty(dns types.DNS) bool {
+	return len(dns.Options) == 0 &&
+		len(dns.Search) == 0 &&
+		len(dns.Options) == 0 &&
+		dns.Domain == ""
+}
+
 func createInterfaces(cniConfs map[string]*iface, conf NetConf, parsedArgs *skel.CmdArgs) (*current.Result, error) {
 	var res types.Result
 	var err error
@@ -185,8 +192,6 @@ func createInterfaces(cniConfs map[string]*iface, conf NetConf, parsedArgs *skel
 		}
 	}
 
-	// TODO dns
-
 	return result, nil
 }
 
@@ -232,7 +237,10 @@ func mergeResults(curRes *current.Result, result *current.Result) {
 			result.Routes = append(result.Routes, curRes.Routes...)
 		}
 	}
-	// TODO dns
+	if !dnsIsEmpty(curRes.DNS) {
+		result.DNS = curRes.DNS
+	}
+
 }
 
 func cmdAdd(args *skel.CmdArgs) error {
